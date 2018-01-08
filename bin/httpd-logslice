@@ -1,0 +1,23 @@
+#!/usr/bin/env php
+<?php
+/**
+ * This file is a part of atdean/httpd-logslice.
+ *
+ * (c) 2018 Austin Dean
+ *
+ * For the full copyright and license information, please view
+ * the license that is located at the bottom of this file.
+ */
+
+// This is the shell-executable entry point to the CLI implementation of the application.
+
+if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    require __DIR__ . '../vendor/autoload.php';
+} else {
+    fwrite(STDERR, 'Error: Dependencies not installed or not found. Please ensure Composer is installed and run the "composer install" command.');
+
+    exit (1);
+}
+
+$app = new ATDean\HttpdLogSlice\App();
+$app->run();

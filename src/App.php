@@ -13,7 +13,15 @@ namespace ATDean\HttpdLogSlice;
 use Symfony\Component\Console\Application as BaseConsoleApp;
 use Symfony\Component\Console\Input\InputInterface;
 
+/**
+ * @author Austin Dean <amberdean89@gmail.com>
+ */
 class App extends BaseConsoleApp
 {
+    public function __construct()
+    {
+        parent::__construct('httpd-logslice');
 
+        $this->add(new Commands\LogfileFilterCommand());
+    }
 }

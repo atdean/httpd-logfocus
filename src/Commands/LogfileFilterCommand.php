@@ -14,12 +14,16 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * @author Austin Dean <amberdean89@gmail.com>
+ */
 class LogfileFilterCommand extends Command
 {
     protected function configure()
     {
         $this->setName('logfile:filter')
-             ->setDescription('Parses the specified logfile and returns an analysis and/or subset of the data as specified by the given arguments.');
+             ->setDescription('Parses the specified logfile.')
+             ->setHelp('Parses the specified logfile and returns an analysis and/or subset of the data as specified by the given arguments.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)

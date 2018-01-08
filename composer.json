@@ -1,6 +1,8 @@
 {
     "name": "atdean/httpd-logslice",
     "description": "A simple PHP tool to quickly filter Apache logfiles.",
+    "keywords": ["log", "logging", "httpd", "apache", "parse", "filter"],
+    "homepage": "https://github.com/atdean/httpd-logslice",
     "type": "project",
     "license": "MIT",
     "authors": [
@@ -13,12 +15,6 @@
     "require": {
         "symfony/console": "^4.0"
     },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/atdean/httpd-logslice"
-        }
-    ],
     "autoload": {
       "psr-4": {
         "ATDean\\HttpdLogSlice\\": "src/"

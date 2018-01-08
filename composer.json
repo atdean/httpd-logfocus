@@ -10,10 +10,13 @@
             "email": "amberdean89@gmail.com"
         }
     ],
-    "require": {},
+    "require": {
+        "symfony/console": "^4.0"
+    },
     "autoload": {
       "psr-4": {
         "ATDean\\HttpdLogSlice\\": "src/"
       }
-    }
+    },
+    "bin": ["bin/httpd-logslice"]
 }

@@ -22,6 +22,8 @@ class App extends BaseConsoleApp
     {
         parent::__construct('httpd-logslice');
 
+        // TODO :: Add checking for permissions errors on getcwd()
+
         $this->add(new Commands\LogfileFilterCommand());
     }
 }

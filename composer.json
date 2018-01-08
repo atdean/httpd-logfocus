@@ -1,0 +1,19 @@
+{
+    "name": "atdean/httpd-logslice",
+    "description": "A simple PHP tool to quickly filter Apache logfiles.",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Austin Dean",
+            "homepage": "https://github.com/atdean",
+            "email": "amberdean89@gmail.com"
+        }
+    ],
+    "require": {},
+    "autoload": {
+      "psr-4": {
+        "ATDean\\HttpdLogSlice\\": "src/"
+      }
+    }
+}

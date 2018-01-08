@@ -20,15 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class LogfileFilterCommand extends Command
 {
-    private $baseDir;
     private $rawLogfileData = [];
-
-    public function __construct($baseDir)
-    {
-        parent::__construct();
-
-        $this->baseDir = $baseDir;
-    }
 
     protected function configure()
     {
@@ -71,7 +63,7 @@ class LogfileFilterCommand extends Command
                 /* If the given path starts with and /, we know it is absolute.
                  * If it does not, it's relative and must be appended to __DIR__. */
                 if (substr($fp, 0, 1) !== '/') {
-                    $fp = __DIR__ . '/' . $fp;
+                    $fp = getcwd() . '/' . $fp;
                 }
 
                 try {

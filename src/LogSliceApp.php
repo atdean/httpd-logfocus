@@ -2,6 +2,6 @@
 
 namespace ATDean\HttpdLogSlice;
 
-class LogSlice {
+class LogSliceApp {
   
 }

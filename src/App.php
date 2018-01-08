@@ -18,10 +18,26 @@ use Symfony\Component\Console\Input\InputInterface;
  */
 class App extends BaseConsoleApp
 {
+    private $baseDir;
+
     public function __construct()
     {
         parent::__construct('httpd-logslice');
 
-        $this->add(new Commands\LogfileFilterCommand());
+        $this->setBaseDirectory();
+
+        $this->add(new Commands\LogfileFilterCommand($this->baseDir));
+    }
+
+    /**
+     * Trace back to the entry point of the application to get the original
+     * working directory, in order to keep relative filepaths consistent.
+     */
+    private function setBaseDirectory()
+    {
+        $trace = debug_backtrace();
+        $this->baseDir = $trace[count($trace) - 1]['file'];
+
+
     }
 }

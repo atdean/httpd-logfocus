@@ -61,7 +61,7 @@ class LogfileFilterCommand extends Command
         if (count($filepaths) > 0) {
             foreach ($filepaths as $fp) {
                 /* If the given path starts with and /, we know it is absolute.
-                 * If it does not, it's relative and must be appended to __DIR__. */
+                 * If it does not, it's relative and must be appended to working dir. */
                 if (substr($fp, 0, 1) !== '/') {
                     $fp = getcwd() . '/' . $fp;
                 }

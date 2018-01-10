@@ -8,9 +8,12 @@
  * the license that was distributed with the source code.
  */
 
-namespace ATDean\HttpdLogSlice\Filters;
+namespace ATDean\HttpdLogSlice;
 
-class DateTimeFilter implements FilterInterface
+/**
+ * @author Austin Dean <amberdean89@gmail.com>
+ */
+class LogEntry
 {
     
 }

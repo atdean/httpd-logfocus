@@ -12,6 +12,7 @@ namespace ATDean\HttpdLogSlice\Commands;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -20,7 +21,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class LogfileFilterCommand extends Command
 {
-    private $rawLogfileData = [];
+    private $rexStartsWithDotQuad = '/^([0-9]{3}.)\S+/';
 
     protected function configure()
     {
@@ -32,17 +33,28 @@ class LogfileFilterCommand extends Command
                  'filepaths',
                  InputArgument::IS_ARRAY | InputArgument::REQUIRED,
                  'Which logfiles should be processed?'
+             )->addOption(
+                 'start-date',
+                 'd',
+                 InputOption::VALUE_REQUIRED,
+                 'Starting date of logs to analyze. If no end date is provided, '
+                    . 'will select entries from start date up to the most current.',
+                 null
+             )->addOption(
+                 'end-date',
+                 'D',
+                 InputOption::VALUE_REQUIRED,
+                 'Ending date of logs to analyze. If no start date is provided, '
+                    . 'will select entries from the earliest up to the end date.',
+                 null
              );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         try {
-            $this->loadFiles($input->getArgument('filepaths'));
-
-            foreach($this->rawLogfileData as $data) {
-                $output->writeln(key($data));
-            }
+            $loadedFiles = $this->loadFiles($input->getArgument('filepaths'));
+            $this->parseFiles($this->createFilters($input), $loadedFiles);
         } catch (\Exception $e) {
             $output->writeln($e->getMessage());
             exit(1);
@@ -51,13 +63,23 @@ class LogfileFilterCommand extends Command
         // ("[^"]+")|\S+
     }
 
+    private function createFilters($input) : array
+    {
+        $filters = [];
+
+        return $filters;
+    }
+
     /**
      * @param $filepaths An array of file paths relative to working dir to load
      *
      * @throws Exception When no files are specified, or if a file cannot be loaded
+     * @return array
      */
-    private function loadFiles($filepaths)
+    private function loadFiles($filepaths) : array
     {
+        $filesArray = [];
+
         if (count($filepaths) > 0) {
             foreach ($filepaths as $fp) {
                 /* If the given path starts with and /, we know it is absolute.
@@ -73,7 +95,10 @@ class LogfileFilterCommand extends Command
                     $content = @file_get_contents($fp);
 
                     if ($content !== false) {
-                        array_push($this->rawLogfileData, [$fp => $content]);
+                        array_push(
+                            $filesArray,
+                            ['filepath' => $fp, 'raw_text' => $content]
+                        );
                     } else {
                         throw new \Exception();
                     }
@@ -86,6 +111,18 @@ class LogfileFilterCommand extends Command
             }
         } else {
             throw new \Exception('Error: No logfiles were specified.');
+        }
+
+        return $filesArray;
+    }
+
+    private function parseFiles($input, $output)
+    {
+        foreach ($this->rawLogfileData as $sourceFile) {
+            // Split raw text glob into lines, removing empty lines
+            $splitData = preg_split('/\n|\r/', $sourceFile['raw_text'], -1, PREG_SPLIT_NO_EMPTY);
+
+            // var_dump($splitData->size);
         }
     }
 }

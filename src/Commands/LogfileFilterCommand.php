@@ -21,7 +21,13 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class LogfileFilterCommand extends Command
 {
-    private $rexStartsWithDotQuad = '/^([0-9]{3}.)\S+/';
+    private $patterns = [
+        'startsWithDotQuad' => '/^([0-9]{3}.)\S+/',
+        'newlines' => '/\n|\r/',
+        'matchColumns' => '/\"[^\"]+\"|\S+/',
+        'request' => '/(?:(?P<type>[A-Z]+) (?P<url>.+?)\s)/',
+        'request1' => '/(?:(?P<type>[A-Z]+) (?P<resource>.+?) HTTP\/1.[0|1])|-/',
+    ];
 
     protected function configure()
     {
@@ -54,13 +60,14 @@ class LogfileFilterCommand extends Command
     {
         try {
             $loadedFiles = $this->loadFiles($input->getArgument('filepaths'));
-            $this->parseFiles($this->createFilters($input), $loadedFiles);
+            $this->parseFiles($loadedFiles, $this->createFilters($input));
         } catch (\Exception $e) {
             $output->writeln($e->getMessage());
             exit(1);
         }
 
         // ("[^"]+")|\S+
+        // ^([0-9]{3}.)\S+
     }
 
     private function createFilters($input) : array
@@ -71,12 +78,11 @@ class LogfileFilterCommand extends Command
     }
 
     /**
-     * @param $filepaths An array of file paths relative to working dir to load
-     *
+     * @param array $filepaths An array of file paths relative to working dir to load
      * @throws Exception When no files are specified, or if a file cannot be loaded
      * @return array
      */
-    private function loadFiles($filepaths) : array
+    private function loadFiles(array $filepaths) : array
     {
         $filesArray = [];
 
@@ -116,13 +122,40 @@ class LogfileFilterCommand extends Command
         return $filesArray;
     }
 
-    private function parseFiles($input, $output)
+    private function parseFiles(array $loadedFiles, array $filters)
     {
-        foreach ($this->rawLogfileData as $sourceFile) {
+        foreach ($loadedFiles as $file) {
             // Split raw text glob into lines, removing empty lines
-            $splitData = preg_split('/\n|\r/', $sourceFile['raw_text'], -1, PREG_SPLIT_NO_EMPTY);
+            $splitLines = preg_split($this->patterns['newlines'],
+                $file['raw_text'], -1, PREG_SPLIT_NO_EMPTY);
 
-            // var_dump($splitData->size);
+            foreach ($splitLines as $line) {
+                $logEntry = $this->analyzeEntry($line);
+                var_dump($logEntry);
+            }
         }
+    }
+
+    private function analyzeEntry($line)
+    {
+        // Break into columns
+        preg_match_all($this->patterns['matchColumns'],
+            $line, $lineComponents, PREG_PATTERN_ORDER);
+
+        $entry = [];
+
+        // Parse request component
+        preg_match($this->patterns['request'],
+            $lineComponents[0][4], $reqInfo);
+
+        if (!empty($reqInfo)) {
+            $entry['request_type'] = $reqInfo['type'];
+            $entry['request_url'] = $reqInfo['url'];
+        } else {
+            $entry['request_type'] = null;
+            $entry['request_url'] = null;
+        }
+
+        return $entry;
     }
 }

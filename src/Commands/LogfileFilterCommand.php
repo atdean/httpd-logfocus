@@ -15,6 +15,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Carbon\Carbon;
 
 /**
  * @author Austin Dean <amberdean89@gmail.com>
@@ -22,11 +23,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 class LogfileFilterCommand extends Command
 {
     private $patterns = [
-        'startsWithDotQuad' => '/^([0-9]{3}.)\S+/',
         'newlines' => '/\n|\r/',
         'matchColumns' => '/\"[^\"]+\"|\S+/',
+        'ipAddress' => '/(?:(?P<request_ip>[0-9]{3}\.)\S+)/',
         'request' => '/(?:(?P<type>[A-Z]+) (?P<url>.+?)\s)/',
-        'request1' => '/(?:(?P<type>[A-Z]+) (?P<resource>.+?) HTTP\/1.[0|1])|-/',
+        'insideBrackets' => '/\[(.+)\]/',
+        'timestamp' => '/(?:\[(?P<day>[0-9][0-9])\/(?P<month>[a-zA-Z]{3})\/(?P<year>[0-9]{4})\:(?P<hours>[0-9]{2})\:(?P<minutes>[0-9]{2})\:(?P<seconds>[0-9]{2})+\])/'
     ];
 
     protected function configure()
@@ -65,9 +67,6 @@ class LogfileFilterCommand extends Command
             $output->writeln($e->getMessage());
             exit(1);
         }
-
-        // ("[^"]+")|\S+
-        // ^([0-9]{3}.)\S+
     }
 
     private function createFilters($input) : array
@@ -138,15 +137,34 @@ class LogfileFilterCommand extends Command
 
     private function analyzeEntry($line)
     {
+        // TODO :: Replace all of this with a consolidated capture regex to validate format.
+
         // Break into columns
         preg_match_all($this->patterns['matchColumns'],
-            $line, $lineComponents, PREG_PATTERN_ORDER);
+            $line, $columns, PREG_PATTERN_ORDER);
 
         $entry = [];
 
+        $entry['request_ip'] = (!empty($columns[0][0])) ? $columns[0][0] : null;
+        $entry['remote_user'] = (!strcmp($columns[0][2], '-')) ? $columns[0][2] : null;
+        // var_dump(!strcmp($columns[0][2], '-'));
+
+        // Parse timestamp Component
+        preg_match($this->patterns['insideBrackets'], $columns[0][3], $timestamp);
+        
+        try {
+            if (!empty($timestamp)) {
+                $entry['timestamp'] = Carbon::createFromFormat('d/M/Y:H:i:s', $timestamp[1]);
+            } else {
+                throw new \Exception('Invalid or empty timestamp provided.');
+            }
+        } catch (\Exception $e) {
+            throw new \Exception("Could not create timestamp from format:\n" . $e->getMessage());
+        }
+
         // Parse request component
         preg_match($this->patterns['request'],
-            $lineComponents[0][4], $reqInfo);
+            $columns[0][4], $reqInfo);
 
         if (!empty($reqInfo)) {
             $entry['request_type'] = $reqInfo['type'];

@@ -31,6 +31,8 @@ class LogfileFilterCommand extends Command
         'timestamp' => '/(?:\[(?P<day>[0-9][0-9])\/(?P<month>[a-zA-Z]{3})\/(?P<year>[0-9]{4})\:(?P<hours>[0-9]{2})\:(?P<minutes>[0-9]{2})\:(?P<seconds>[0-9]{2})+\])/'
     ];
 
+    private $filters = [];
+
     protected function configure()
     {
         $this->setName('logfile:filter')
@@ -60,20 +62,19 @@ class LogfileFilterCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        // TODO :: Decouple parsing logic from the console command.
+
         try {
             $loadedFiles = $this->loadFiles($input->getArgument('filepaths'));
+
+            // TODO :: Query input for filter params and generate filter objects.
+
+            // TODO :: Store parsed data in an internal array and route to desired output.
             $this->parseFiles($loadedFiles, $this->createFilters($input));
         } catch (\Exception $e) {
             $output->writeln($e->getMessage());
             exit(1);
         }
-    }
-
-    private function createFilters($input) : array
-    {
-        $filters = [];
-
-        return $filters;
     }
 
     /**
@@ -147,11 +148,10 @@ class LogfileFilterCommand extends Command
 
         $entry['request_ip'] = (!empty($columns[0][0])) ? $columns[0][0] : null;
         $entry['remote_user'] = (!strcmp($columns[0][2], '-')) ? $columns[0][2] : null;
-        // var_dump(!strcmp($columns[0][2], '-'));
 
         // Parse timestamp Component
         preg_match($this->patterns['insideBrackets'], $columns[0][3], $timestamp);
-        
+
         try {
             if (!empty($timestamp)) {
                 $entry['timestamp'] = Carbon::createFromFormat('d/M/Y:H:i:s', $timestamp[1]);
